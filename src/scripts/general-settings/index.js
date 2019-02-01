@@ -4,6 +4,7 @@ const { ipcRenderer } = require('electron');
 
 const renderSidebar = require('./modules/sidebar');
 const renderPricing = require('./modules/pricing');
+const renderLayout = require('./modules/layout');
 
 const handleError = err => {
   console.error(err);
@@ -27,10 +28,14 @@ const state = {
 
 };
 
+
 state.set('active', 0);
+state.set('sidebarSelected', 0);
 state.set('sidebarItems', [
-  {text: 'Market Pricing'}
+  {text: 'Market Pricing', title: 'MARKET PRICING'}
+  // {text: 'Layout Options', title: 'LAYOUT OPTIONS'}
 ]);
+
 state.set('pricingUnits', [
   'BTC'
 ]);
@@ -62,12 +67,14 @@ $(document).ready(() => {
 
   const apiKeyError = (bool) => {
     const msg = bool ? "An API key is required for this data source." : "&nbsp;";
-    $('#js-inputError').html(msg);
-    bool ? $('#js-apiKeyInput').addClass('inputError') : $('#js-apiKeyInput').removeClass('inputError');
+    $('#js-pricingInputError').html(msg);
+    bool ? $('#js-apiKeyInput').addClass('pricingInputError') : $('#js-apiKeyInput').removeClass('pricingInputError');
   }
 
   const render = () => {
 
+    const sidebarItems = state.get('sidebarItems');
+    const sidebarSelected = state.get('sidebarSelected');
     const active = state.get('active');
     const sidebarHTML = renderSidebar({ state });
     let mainHTML = '';
@@ -75,12 +82,15 @@ $(document).ready(() => {
       case 0:
         mainHTML = renderPricing({ state });
         break;
+      // case 1:
+      //   mainHTML = renderLayout({ state });
+      //   break;
       default:
         mainHTML = '';
     }
 
     const html = `
-          <h3>GENERAL SETTINGS</h3>
+          <h3 class="title">${sidebarItems[sidebarSelected]['title']}</h3>
           <div class="container">
             <div class="flex-container">
               <div class="col1">
@@ -102,10 +112,20 @@ $(document).ready(() => {
         .on('click', e => {
           e.preventDefault();
           const $target = $(e.target);
-          if(!$target.hasClass('js-versionDropdownButton') && !$target.parent().hasClass('js-versionDropdownButton') && !$target.parent().parent().hasClass('js-versionDropdownButton')) {
+          if(!$target.hasClass('js-dropdownButton') && !$target.parent().hasClass('js-dropdownButton') && !$target.parent().parent().hasClass('js-dropdownButton')) {
             closeDropdowns();
           }
         });
+
+      $('.js-sidebarItem')
+        .off('click')
+        .on('click', e => {
+          e.preventDefault();
+          var newActive = Number($(e.target).attr("data-sidebar-index"));
+          state.set('active', newActive);
+          state.set('sidebarSelected', newActive);
+          render();
+      });
 
       $('#js-pricingUnitDropdown')
         .off('click')
@@ -167,9 +187,9 @@ $(document).ready(() => {
                 ee.preventDefault();
                 const source = $(ee.currentTarget).attr('data-source');
                 const pricingSourceObj = pricingSources.find(p => p.id === source);
-                const $toggle1 = $('.js-toggle1');
-                const $toggle2 = $('.js-toggle2');
-                const $colorBar = $('.js-colorBar');
+                const $toggle1 = $('.js-pricingToggle1');
+                const $toggle2 = $('.js-pricingToggle2');
+                const $colorBar = $('.js-pricingColorBar');
                 $($target.find('div')[0]).text(pricingSourceObj.text);
                 state.set('pricingSource', source);
                 $('#js-apiKeyInput').attr("placeholder", "Enter API key");
@@ -206,7 +226,7 @@ $(document).ready(() => {
               });
           }, 0);
         });
-      $('.js-colorToggle')
+      $('.js-pricingColorToggle')
         .off('click')
         .on('click', e => {
           e.preventDefault();
@@ -214,9 +234,9 @@ $(document).ready(() => {
           const pricingSources = state.get('pricingSources');
           const pricingSourceObj = pricingSources.find(p => p.id === pricingSource);
           const $target = $(e.currentTarget);
-          const $toggle1 = $target.find('.js-toggle1');
-          const $toggle2 = $target.find('.js-toggle2');
-          const $colorBar = $target.find('.js-colorBar');
+          const $toggle1 = $target.find('.js-pricingToggle1');
+          const $toggle2 = $target.find('.js-pricingToggle2');
+          const $colorBar = $target.find('.js-pricingColorBar');
           if($toggle1.hasClass('active')) {
             state.set('pricingEnabled', false);
             $toggle2.addClass('active');
@@ -259,9 +279,9 @@ $(document).ready(() => {
             [pricingSource]: value.trim()
           });
           state.set('apiKeys', newAPIKeys);
-          const $toggle1 = $('.js-toggle1');
-          const $toggle2 = $('.js-toggle2');
-          const $colorBar = $('.js-colorBar');
+          const $toggle1 = $('.js-pricingToggle1');
+          const $toggle2 = $('.js-pricingToggle2');
+          const $colorBar = $('.js-pricingColorBar');
           if (pricingSourceObj.apiKeyNeeded && $('#js-apiKeyInput').val().trim() == '') {
             apiKeyError(true);
             state.set('pricingEnabled', false);
