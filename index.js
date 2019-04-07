@@ -321,9 +321,11 @@ ipcMain.on('checkForUpdates', e => {
   }
 });
 
+let configurationWindow;
+
 const openConfigurationWindow = (options = {}) => {
 
-  const { error } = options;
+  const { isFirstRun = false, error } = options;
 
   // const errorMessage = error ? 'There was a problem connecting to the Blocknet RPC server. What would you like to do?' : '';
   let errorTitle, errorMessage;
@@ -343,7 +345,7 @@ const openConfigurationWindow = (options = {}) => {
     errorMessage = '';
   }
 
-  const configurationWindow = new BrowserWindow({
+  configurationWindow = new BrowserWindow({
     show: false,
     width: 1050,
     height: platform === 'win32' ? 708 : platform === 'darwin' ? 695 : 670,
@@ -377,6 +379,10 @@ const openConfigurationWindow = (options = {}) => {
   } else if(platform === 'darwin') {
     setAppMenu();
   }
+
+  ipcMain.on('isFirstRun', e => {
+    e.returnValue = isFirstRun;
+  });
 
   ipcMain.removeAllListeners('openSettingsWindow');
   ipcMain.on('openSettingsWindow', () => {
@@ -471,6 +477,9 @@ const openConfigurationWindow = (options = {}) => {
 
 };
 
+ipcMain.on('closeConfigurationWindow', e => {
+  configurationWindow.close();
+});
 ipcMain.on('quit', () => {
   app.quit();
 });
@@ -535,6 +544,13 @@ const openSettingsWindow = (options = {}) => {
     if(errorMessage) {
       settingsWindow.send('errorMessage', errorMessage);
     }
+    if(configurationWindow) {
+      try {
+        configurationWindow.close();
+      } catch(err) {
+        console.error(err);
+      }
+    }
   });
 
   if(isDev) {
@@ -552,6 +568,13 @@ const openSettingsWindow = (options = {}) => {
   }
 
 };
+
+ipcMain.on('getUser', e => {
+  e.returnValue = storage.getItem('user') || '';
+});
+ipcMain.on('getPassword', e => {
+  e.returnValue = storage.getItem('password') || '';
+});
 
 const openGeneralSettingsWindow = () => {
 
@@ -1126,10 +1149,6 @@ const openAppWindow = () => {
     openInformationWindow();
   });
 
-  ipcMain.on('openSettings', () => {
-    openSettingsWindow();
-  });
-
   ipcMain.on('openConfigurationWizard', () => {
     openConfigurationWindow();
   });
@@ -1139,6 +1158,10 @@ const openAppWindow = () => {
   });
 
 };
+
+ipcMain.on('openSettings', () => {
+  openSettingsWindow();
+});
 
 ipcMain.on('getPricingSource', e => {
   e.returnValue = pricingSource;
@@ -1281,7 +1304,7 @@ const onReady = new Promise(resolve => app.on('ready', resolve));
 
     if(!user || !password) {
       await onReady;
-      openConfigurationWindow();
+      openConfigurationWindow({isFirstRun: true});
       checkForUpdates();
       return;
     }

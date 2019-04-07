@@ -187,6 +187,14 @@
       display: flex;
       flex-direction: column;
     }
+    .col2-no-margin {
+      flex-grow: 1;
+      height: 475px;
+      max-height: 475px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
     .sidebar-item {
       margin-top: 10px;
       margin-bottom: 10px;
@@ -200,6 +208,10 @@
     .radio-icon {
       color: #339CFF;
       margin-right: 10px;
+    }
+    .check-icon {
+      color: #339CFF;
+      margin-right: 5px;
     }
     .main-area {
       flex-grow: 1;
@@ -243,6 +255,27 @@
     a.blocknet-link:hover {
       color: #006afe;
     }
+    a.text-link {
+      color: #0ce3ff;
+      opacity: 1;
+    }
+    a.text-link:hover {
+      color: #0ce3ff;
+      opacity: .8;
+    }
+    .tippy-tooltip.block-theme {
+      background-color: #eee;
+      color: #000;
+    }
+    .tippy-tooltip.block-theme a {
+      color: #0398a8;
+    }
+    .tippy-tooltip.block-theme[data-animatefill] {
+      background-color: transparent;
+    }
+    .tippy-tooltip.block-theme .tippy-backdrop {
+      background-color: #eee;
+    }
 
   </style>
 
@@ -263,8 +296,12 @@
   <script>if (window.module) module = window.module;</script>
 
   <script type="text/javascript" src="assets/vendor/sweetalert2.js"></script>
+  <script src="https://unpkg.com/popper.js@1/dist/umd/popper.min.js"></script>
+  <script src="https://unpkg.com/tippy.js@4"></script>
 
-  <script type="text/javascript" src="./scripts/configuration/index.js"></script>
+  <script type="text/javascript">
+    require('./scripts/configuration/index');
+  </script>
 
 </body>
 </html>
